@@ -268,6 +268,8 @@ screen_init() {
 	echo -e "\e[1m\e[32mDownloading Story execution client v$KJ_GETH_VERSION...\e[0m" >&2
 	curl -sLo "$KJ_TMP_DIR/geth" "https://github.com/piplabs/story-geth/releases/download/v${KJ_GETH_VERSION}/geth-linux-${KJ_GO_ARCH}"
 	sudo mv "$KJ_TMP_DIR/geth" /usr/local/bin/geth
+	sudo chown 0:0 /usr/local/bin/geth
+	sudo chmod 755 /usr/local/bin/geth
 
 	# Initialize the node.
 	echo -e '\e[1m\e[32mInitializing Story consensus client data...\e[0m' >&2
@@ -481,8 +483,9 @@ screen_upgrade() {
 	else
 		echo -e "\e[1m\e[32mDownloading Story execution client v$KJ_GETH_VERSION...\e[0m" >&2
 		curl -sLo "$KJ_TMP_DIR/geth" "https://github.com/piplabs/story-geth/releases/download/v${KJ_GETH_VERSION}/geth-linux-${KJ_GO_ARCH}"
-		chmod a+x "$KJ_TMP_DIR/geth"
 		sudo mv "$KJ_TMP_DIR/geth" /usr/local/bin/geth
+		sudo chown 0:0 /usr/local/bin/geth
+		sudo chmod 755 /usr/local/bin/geth
 		echo -e '\e[1m\e[32mRestarting Story execution client...\e[0m' >&2
 		sudo systemctl restart story-testnet-geth.service
 	fi

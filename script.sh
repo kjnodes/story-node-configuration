@@ -234,7 +234,7 @@ screen_init() {
 	echo -e "\e[1m\e[32mSetting up Go${KJ_GO_VERSION}...\e[0m" >&2
 	[ -f "/usr/local/go${KJ_GO_VERSION}.linux-${KJ_GO_ARCH}.tar.gz" ] || sudo curl -sLo "/usr/local/go${KJ_GO_VERSION}.linux-${KJ_GO_ARCH}.tar.gz" "https://go.dev/dl/go${KJ_GO_VERSION}.linux-${KJ_GO_ARCH}.tar.gz"
 	sudo rm -rf /usr/local/go && sudo tar -xzf "/usr/local/go${KJ_GO_VERSION}.linux-${KJ_GO_ARCH}.tar.gz" -C /usr/local
-	if ! grep -Fxq 'export PATH=$PATH:/usr/local/go/bin' /etc/profile.d/golang.sh; then
+	if ! [ -x /etc/profile.d/golang.sh ] || ! grep -Fxq 'export PATH=$PATH:/usr/local/go/bin' /etc/profile.d/golang.sh; then
 		sudo tee /etc/profile.d/golang.sh <<- EOF > /dev/null
 			#!/bin/sh
 			export PATH=$PATH:/usr/local/go/bin
@@ -435,9 +435,20 @@ screen_upgrade() {
 		echo -e "\e[1m\e[32mSetting up Go${KJ_GO_VERSION}...\e[0m" >&2
 		[ -f "/usr/local/go${KJ_GO_VERSION}.linux-${KJ_GO_ARCH}.tar.gz" ] || sudo curl -sLo "/usr/local/go${KJ_GO_VERSION}.linux-${KJ_GO_ARCH}.tar.gz" "https://go.dev/dl/go${KJ_GO_VERSION}.linux-${KJ_GO_ARCH}.tar.gz"
 		sudo rm -rf /usr/local/go && sudo tar -xzf "/usr/local/go${KJ_GO_VERSION}.linux-${KJ_GO_ARCH}.tar.gz" -C /usr/local
-		grep -Fxq 'export PATH=$PATH:/usr/local/go/bin' /etc/profile.d/golang.sh || eval $(echo 'export PATH=$PATH:/usr/local/go/bin' | sudo tee /etc/profile.d/golang.sh)
-		grep -Fxq 'export PATH=$PATH:$HOME/go/bin' "$HOME/.profile" || eval $(echo 'export PATH=$PATH:$HOME/go/bin' | tee -a "$HOME/.profile")
 	fi
+	if ! [ -x /etc/profile.d/golang.sh ] || ! grep -Fxq 'export PATH=$PATH:/usr/local/go/bin' /etc/profile.d/golang.sh; then
+		sudo tee /etc/profile.d/golang.sh <<- EOF > /dev/null
+			#!/bin/sh
+			export PATH=$PATH:/usr/local/go/bin
+		EOF
+		sudo chmod a+rx /etc/profile.d/golang.sh
+		source /etc/profile.d/golang.sh
+	else
+		# in case we have a non-login shell!
+		# and even if we have it already sourced, doesn't hurt to add it another time.
+		source /etc/profile.d/golang.sh
+	fi
+	grep -Fxq 'export PATH=$PATH:$HOME/go/bin' "$HOME/.profile" || eval $(echo 'export PATH=$PATH:$HOME/go/bin' | tee -a "$HOME/.profile")
 
 	# Install Cosmovisor.
 	if [ "x$(cosmovisor version --cosmovisor-only 2>&1)" == "xcosmovisor version: $KJ_COSMOVISOR_VERSION" ]; then

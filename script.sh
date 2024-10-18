@@ -82,8 +82,8 @@ screen_main() {
 	STORY_VERSION_OUT=''
 	STORY_COMMIT_OUT=''
 	if [ -x "$HOME/.story/story/cosmovisor/current/bin/story" ]; then
-		STORY_VERSION_OUT="$($HOME/.story/story/cosmovisor/upgrades/$KJ_STORY_VERSION/bin/story version 2>&1 | grep -Ee '^Version' | cut -d' ' -f2- | tr -d ' ')"
-		STORY_COMMIT_OUT="$($HOME/.story/story/cosmovisor/upgrades/$KJ_STORY_VERSION/bin/story version 2>&1 | grep -Ee '^Git Commit' | cut -d' ' -f3- | tr -d ' ')"
+		STORY_VERSION_OUT="$($HOME/.story/story/cosmovisor/current/bin/story version 2>&1 | grep -Ee '^Version' | cut -d' ' -f2- | tr -d ' ')"
+		STORY_COMMIT_OUT="$($HOME/.story/story/cosmovisor/current/bin/story version 2>&1 | grep -Ee '^Git Commit' | cut -d' ' -f3- | tr -d ' ')"
 	fi
 	GETH_VERSION_OUT=''
 	if [ -x '/usr/local/bin/geth' ]; then

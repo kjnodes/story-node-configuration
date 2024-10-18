@@ -228,7 +228,7 @@ screen_init() {
 
 	# Install OS package dependencies.
 	echo -e '\e[1m\e[32mInstalling system dependencies...\e[0m' >&2
-	sudo apt-get -qqy install curl lz4
+	sudo apt-get -qqy install curl lz4 ccze
 
 	# Set up Golang dependency.
 	echo -e "\e[1m\e[32mSetting up Go${KJ_GO_VERSION}...\e[0m" >&2
@@ -383,13 +383,13 @@ screen_logs() {
 	[ "x$service" == 'x' ] && read -e -p '> Select service for logs (story/geth): ' service
 	case "$service" in
 		story)
-			(trap 'exit 0' INT; journalctl -f -ocat --no-pager -u story-testnet.service)
+			(trap 'exit 0' INT; journalctl -f -ocat --no-pager -u story-testnet.service | ccze -A)
 			;;
 		geth)
-			(trap 'exit 0' INT; journalctl -f -ocat --no-pager -u story-testnet-geth.service)
+			(trap 'exit 0' INT; journalctl -f -ocat --no-pager -u story-testnet-geth.service | ccze -A)
 			;;
 		both)
-			(trap 'exit 0' INT; journalctl -f -ocat --no-pager -u story-testnet.service -u story-testnet-geth.service)
+			(trap 'exit 0' INT; journalctl -f -ocat --no-pager -u story-testnet.service -u story-testnet-geth.service | ccze -A)
 			;;
 		*)
 			echo 'Unrecognized choice. Expected "story" or "geth" to be provided.' >&2

@@ -56,6 +56,10 @@ screen_main() {
 				screen_upgrade
 				exit 0
 				;;
+			restart)
+				screen_restart
+				exit 0
+				;;
 			logs)
 				screen_logs
 				exit 0
@@ -108,11 +112,13 @@ screen_main() {
 	( [ "x$STORY_VERSION_OUT" == "xv${KJ_STORY_VERSION}-stable" ] && [ "x$GETH_VERSION_OUT" == "x${KJ_GETH_VERSION}-stable-${KJ_GETH_COMMIT}" ] ) && echo -ne '\033[0;90m' >&2
 	echo -e '2 - Upgrade service\e[0m' >&2
 	( [ "x$STORY_VERSION_OUT" == 'x' ] && [ "x$GETH_VERSION_OUT" == 'x' ] ) && echo -ne '\033[0;90m' >&2
-	echo -e '3 - Show service logs\e[0m' >&2
+	echo -e '3 - Restart services\e[0m' >&2
 	( [ "x$STORY_VERSION_OUT" == 'x' ] && [ "x$GETH_VERSION_OUT" == 'x' ] ) && echo -ne '\033[0;90m' >&2
-	echo -e '4 - Reset local data to pruned snapshot\e[0m' >&2
+	echo -e '4 - Show service logs\e[0m' >&2
 	( [ "x$STORY_VERSION_OUT" == 'x' ] && [ "x$GETH_VERSION_OUT" == 'x' ] ) && echo -ne '\033[0;90m' >&2
-	echo -e '5 - Configure local monitoring solution\e[0m' >&2
+	echo -e '5 - Reset local data to pruned snapshot\e[0m' >&2
+	( [ "x$STORY_VERSION_OUT" == 'x' ] && [ "x$GETH_VERSION_OUT" == 'x' ] ) && echo -ne '\033[0;90m' >&2
+	echo -e '6 - Configure local monitoring solution\e[0m' >&2
 	echo -e '9 - Remove service and data\e[0m' >&2
 	echo -e '0 - Exit\e[0m' >&2
 	read -e -p '  > Enter your choice: ' choice
@@ -126,12 +132,15 @@ screen_main() {
 			screen_upgrade
 			;;
 		3)
-			screen_logs
+			screen_restart
 			;;
 		4)
-			screen_snapshot
+			screen_logs
 			;;
 		5)
+			screen_snapshot
+			;;
+		6)
 			screen_monitor
 			;;
 		9)
@@ -349,60 +358,6 @@ screen_init() {
 }
 
 
-screen_logs() {
-
-	# Check whether services already exist, and abort if not.
-	if ! systemctl list-unit-files -q story-testnet.service >/dev/null; then
-		echo 'Aborting! Did not find `story-testnet` service file installed.' >&2
-		echo 'Is Story actually running on this system?' >&2
-		screen_main
-		return 1
-	fi
-	if ! systemctl list-unit-files -q story-testnet-geth.service >/dev/null; then
-		echo 'Aborting! Did not find `story-testnet-geth` service file installed.' >&2
-		echo 'Is Story actually running on this system?' >&2
-		screen_main
-		return 1
-	fi
-
-	# Check if values are provided as flags.
-	service=''
-	OPTIND=1
-	while getopts hvf: opt; do
-		case $opt in
-			s)
-				service="$OPTARG"
-				;;
-			*)
-				# ignore unknown flags
-				;;
-		esac
-	done
-	shift "$((OPTIND-1))"
-
-	[ "x$service" == 'x' ] && read -e -p '> Select service for logs (story/geth): ' service
-	case "$service" in
-		story)
-			(trap 'exit 0' INT; journalctl -f -ocat --no-pager -u story-testnet.service | ccze -A)
-			;;
-		geth)
-			(trap 'exit 0' INT; journalctl -f -ocat --no-pager -u story-testnet-geth.service | ccze -A)
-			;;
-		both)
-			(trap 'exit 0' INT; journalctl -f -ocat --no-pager -u story-testnet.service -u story-testnet-geth.service | ccze -A)
-			;;
-		*)
-			echo 'Unrecognized choice. Expected "story" or "geth" to be provided.' >&2
-			screen_main
-			return 1
-			;;
-	esac
-
-	screen_main
-
-}
-
-
 screen_upgrade() {
 
 	# Check whether services already exist, and abort if not.
@@ -489,6 +444,85 @@ screen_upgrade() {
 		echo -e '\e[1m\e[32mRestarting Story execution client...\e[0m' >&2
 		sudo systemctl restart story-testnet-geth.service
 	fi
+
+	screen_main
+
+}
+
+
+screen_restart() {
+
+	# Check whether services already exist, and abort if not.
+	if ! systemctl list-unit-files -q story-testnet.service >/dev/null; then
+		echo 'Aborting! Did not find `story-testnet` service file installed.' >&2
+		echo 'Is Story actually running on this system?' >&2
+		screen_main
+		return 1
+	fi
+	if ! systemctl list-unit-files -q story-testnet-geth.service >/dev/null; then
+		echo 'Aborting! Did not find `story-testnet-geth` service file installed.' >&2
+		echo 'Is Story actually running on this system?' >&2
+		screen_main
+		return 1
+	fi
+
+	sudo systemctl restart story-testnet.service story-testnet-geth.service
+
+	echo 'Successfully restarted!' >&2
+
+	screen_main
+
+}
+
+
+screen_logs() {
+
+	# Check whether services already exist, and abort if not.
+	if ! systemctl list-unit-files -q story-testnet.service >/dev/null; then
+		echo 'Aborting! Did not find `story-testnet` service file installed.' >&2
+		echo 'Is Story actually running on this system?' >&2
+		screen_main
+		return 1
+	fi
+	if ! systemctl list-unit-files -q story-testnet-geth.service >/dev/null; then
+		echo 'Aborting! Did not find `story-testnet-geth` service file installed.' >&2
+		echo 'Is Story actually running on this system?' >&2
+		screen_main
+		return 1
+	fi
+
+	# Check if values are provided as flags.
+	service=''
+	OPTIND=1
+	while getopts hvf: opt; do
+		case $opt in
+			s)
+				service="$OPTARG"
+				;;
+			*)
+				# ignore unknown flags
+				;;
+		esac
+	done
+	shift "$((OPTIND-1))"
+
+	[ "x$service" == 'x' ] && read -e -p '> Select service for logs (story/geth): ' service
+	case "$service" in
+		story)
+			(trap 'exit 0' INT; journalctl -f -ocat --no-pager -u story-testnet.service | ccze -A)
+			;;
+		geth)
+			(trap 'exit 0' INT; journalctl -f -ocat --no-pager -u story-testnet-geth.service | ccze -A)
+			;;
+		both)
+			(trap 'exit 0' INT; journalctl -f -ocat --no-pager -u story-testnet.service -u story-testnet-geth.service | ccze -A)
+			;;
+		*)
+			echo 'Unrecognized choice. Expected "story" or "geth" to be provided.' >&2
+			screen_main
+			return 1
+			;;
+	esac
 
 	screen_main
 

@@ -10,11 +10,14 @@ To initialize or manage your Story node, simply run the following line in your t
 bash <(curl -sL https://github.com/kjnodes/story-node-configuration/raw/refs/heads/main/script.sh)
 ```
 
+![image](images/main-menu.png)
+
 ## Features
 
 - Node Initialization: Set up the Story testnet node from scratch, including Golang, Cosmovisor, and the Story/Geth binaries.
 - Upgrade Management: Seamlessly prepare for upgrades for your node when a new version is available.
 - Snapshot Restore: Easily reset your node to the latest snapshot, with support for both pruned and archival data.
+- Service Restart: Simply perform node service restart.
 - Log Monitoring: View real-time logs of the Story and Geth clients.
 - Service Monitoring: Optional setup of a monitoring solution using Docker, Prometheus, and Grafana with Telegram alert integration.
 - Service Removal: Cleanly remove all traces of the Story and Geth services, including binaries and data.

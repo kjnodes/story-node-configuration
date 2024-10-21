@@ -688,8 +688,6 @@ screen_remove_all() {
 		sudo systemctl stop story-testnet-geth.service
 	fi
 	if [ -e '/etc/systemd/system/story-testnet-geth.service' ]; then
-		sudo systemctl disable story-testnet-geth.service
-		sudo systemctl stop story-testnet-geth.service
 		sudo rm -v '/etc/systemd/system/story-testnet-geth.service'
 		sudo systemctl daemon-reload
 	fi
@@ -698,8 +696,6 @@ screen_remove_all() {
 		sudo systemctl stop story-testnet.service
 	fi
 	if [ -e '/etc/systemd/system/story-testnet.service' ]; then
-		sudo systemctl disable story-testnet.service
-		sudo systemctl stop story-testnet.service
 		sudo rm -v '/etc/systemd/system/story-testnet.service'
 		sudo systemctl daemon-reload
 	fi

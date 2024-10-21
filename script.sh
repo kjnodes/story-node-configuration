@@ -251,11 +251,17 @@ screen_init() {
 		sudo chmod a+rx /etc/profile.d/golang.sh
 		source /etc/profile.d/golang.sh
 	else
-		# in case we have a non-login shell!
+		# in case we have a non-login shell! or the script is restarted right after installation.
 		# and even if we have it already sourced, doesn't hurt to add it another time.
-		source /etc/profile.d/golang.sh
+		export PATH=$PATH:/usr/local/go/bin
 	fi
-	grep -Fxq 'export PATH=$PATH:$HOME/go/bin' "$HOME/.profile" || eval $(echo 'export PATH=$PATH:$HOME/go/bin' | tee -a "$HOME/.profile")
+	if ! grep -Fxq 'export PATH=$PATH:$HOME/go/bin' "$HOME/.profile" ; then
+		eval $(echo 'export PATH=$PATH:$HOME/go/bin' | tee -a "$HOME/.profile")
+	else
+		# in case we have a non-login shell! or the script is restarted right after installation.
+		# and even if we have it already sourced, doesn't hurt to add it another time.
+		export PATH=$PATH:$HOME/go/bin
+ 	fi	
 
 	# Install Cosmovisor.
 	echo -e "\e[1m\e[32mInstalling Cosmovisor $KJ_COSMOVISOR_VERSION...\e[0m" >&2

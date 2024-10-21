@@ -665,9 +665,9 @@ screen_monitor() {
 
 screen_remove_all() {
 
-	if ! systemctl list-units -q story-testnet-geth.service >/dev/null &&
+	if ! systemctl list-units -q story-testnet-geth.service | grep story-testnet-geth.service >/dev/null &&
 			! [ -e '/etc/systemd/system/story-testnet-geth.service' ] &&
-			! systemctl list-units -q story-testnet.service >/dev/null &&
+			! systemctl list-units -q story-testnet.service | grep story-testnet.service >/dev/null &&
 			! [ -e '/etc/systemd/system/story-testnet.service' ] &&
 			! [ -e '/usr/local/bin/geth' ] &&
 			! [ -e '/usr/local/bin/story' ] &&
@@ -689,7 +689,7 @@ screen_remove_all() {
 		return 0
 	fi
 
-	if systemctl list-units -q story-testnet-geth.service >/dev/null; then
+	if systemctl list-units -q story-testnet-geth.service | grep story-testnet-geth.service >/dev/null; then
 		sudo systemctl disable story-testnet-geth.service
 		sudo systemctl stop story-testnet-geth.service
 	fi
@@ -697,7 +697,7 @@ screen_remove_all() {
 		sudo rm -v '/etc/systemd/system/story-testnet-geth.service'
 		sudo systemctl daemon-reload
 	fi
-	if systemctl list-units -q story-testnet.service >/dev/null; then
+	if systemctl list-units -q story-testnet.service | grep story-testnet.service >/dev/null; then
 		sudo systemctl disable story-testnet.service
 		sudo systemctl stop story-testnet.service
 	fi

@@ -1,13 +1,14 @@
 #!/bin/bash
 set -e
 
-KJ_STORY_VERSION='0.11.0' # without the `v` prefix
-KJ_STORY_COMMIT='aac4bfe' # from `story version` on https://github.com/piplabs/story/releases
-KJ_GETH_VERSION='0.9.4' # without the `v` prefix
-KJ_GETH_COMMIT='5fac2533' # from `geth --version` on https://github.com/piplabs/story-geth/releases
-KJ_UPGRADE_HEIGHT='1325860'
+KJ_STORY_VERSION='0.12.0' # without the `v` prefix
+KJ_STORY_COMMIT='94ed0fe' # from `story version` on https://github.com/piplabs/story/releases
+KJ_GETH_VERSION='0.10.0' # without the `v` prefix
+KJ_GETH_COMMIT='ab8925d' # from `geth --version` on https://github.com/piplabs/story-geth/releases
+KJ_UPGRADE_HEIGHT='0'
 KJ_GO_VERSION='1.22.8'
 KJ_COSMOVISOR_VERSION='v1.6.0'
+KJ_CHAIN_ID='odyssey'
 
 
 # Set up Cosmovisor environment variables.
@@ -274,9 +275,8 @@ screen_init() {
 
 	# Download Story consensus binary.
 	echo -e "\e[1m\e[32mDownloading Story consensus client v$KJ_STORY_VERSION...\e[0m" >&2
-	curl -sLo "$KJ_TMP_DIR/story.tar.gz" "https://story-geth-binaries.s3.us-west-1.amazonaws.com/story-public/story-linux-${KJ_GO_ARCH}-${KJ_STORY_VERSION}-${KJ_STORY_COMMIT}.tar.gz"
-	tar -C "$KJ_TMP_DIR" -xf "$KJ_TMP_DIR/story.tar.gz" "story-linux-${KJ_GO_ARCH}-${KJ_STORY_VERSION}-${KJ_STORY_COMMIT}/story"
-	cosmovisor init "$KJ_TMP_DIR/story-linux-${KJ_GO_ARCH}-${KJ_STORY_VERSION}-${KJ_STORY_COMMIT}/story"
+	curl -sLo "$KJ_TMP_DIR/story" "https://github.com/piplabs/story/releases/download/v${KJ_STORY_VERSION}/story-linux-${KJ_GO_ARCH}"
+	cosmovisor init "$KJ_TMP_DIR/story"
 	sudo ln -s "$DAEMON_HOME/cosmovisor/current/bin/story" /usr/local/bin/story # just a helper symlink when user runs `story` directly.
 
 	# Download Story execution binary.
@@ -288,7 +288,7 @@ screen_init() {
 
 	# Initialize the node.
 	echo -e '\e[1m\e[32mInitializing Story consensus client data...\e[0m' >&2
-	story init --moniker "$moniker" --network iliad
+	story init --moniker "$moniker" --network $KJ_CHAIN_ID
 	sed -i -e 's|^seeds *=.*$|seeds = "3f472746f46493309650e5a033076689996c8881@story-testnet.rpc.kjnodes.com:26659"|' "$HOME/.story/story/config/config.toml"
 
 	# Enable Prometheus metrics.
@@ -315,7 +315,7 @@ screen_init() {
 		[Service]
 		User=$USER
 		WorkingDirectory=~
-		ExecStart=/usr/local/bin/geth --iliad --syncmode full --http --ws --metrics --metrics.addr 0.0.0.0 --metrics.port 6060
+		ExecStart=/usr/local/bin/geth --$KJ_CHAIN_ID --syncmode full --http --ws --metrics --metrics.addr 0.0.0.0 --metrics.port 6060
 		Restart=on-failure
 		RestartSec=10
 		LimitNOFILE=65535
@@ -348,7 +348,7 @@ screen_init() {
 	# Download snapshot.
 	echo -e '\e[1m\e[32mDownloading snapshots...\e[0m' >&2
 	mv "$HOME/.story/story/data/priv_validator_state.json" "$HOME/.story/story/priv_validator_state.json"
-	rm -rf "$HOME/.story/geth/iliad/geth/chaindata"
+	rm -rf "$HOME/.story/geth/{$KJ_CHAIN_ID}/geth/chaindata"
 	rm -rf "$HOME/.story/story/data"
 	curl -L "$KJ_SNAP_GETH" | tar -Ilz4 -xf - -C "$HOME/.story/geth"
 	curl -L "$KJ_SNAP_STORY" | tar -Ilz4 -xf - -C "$HOME/.story/story"
@@ -438,10 +438,9 @@ screen_upgrade() {
 		echo -e "\e[1m\e[32mSkipping downloading Story consensus client v$KJ_STORY_VERSION.\e[0m" >&2
 	else
 		echo -e "\e[1m\e[32mDownloading Story consensus client v$KJ_STORY_VERSION...\e[0m" >&2
-		curl -sLo "$KJ_TMP_DIR/story.tar.gz" "https://story-geth-binaries.s3.us-west-1.amazonaws.com/story-public/story-linux-${KJ_GO_ARCH}-${KJ_STORY_VERSION}-${KJ_STORY_COMMIT}.tar.gz"
-		tar -C "$KJ_TMP_DIR" -xf "$KJ_TMP_DIR/story.tar.gz" "story-linux-${KJ_GO_ARCH}-${KJ_STORY_VERSION}-${KJ_STORY_COMMIT}/story"
+		curl -sLo "$KJ_TMP_DIR/story" "https://github.com/piplabs/story/releases/download/v${KJ_STORY_VERSION}/story-linux-${KJ_GO_ARCH}"
 		echo -e '\e[1m\e[32mAdding upgrade to Cosmovisor...\e[0m' >&2
-		cosmovisor add-upgrade "$KJ_STORY_VERSION" "$KJ_TMP_DIR/story-linux-${KJ_GO_ARCH}-${KJ_STORY_VERSION}-${KJ_STORY_COMMIT}/story" --upgrade-height "$KJ_UPGRADE_HEIGHT" --force
+		cosmovisor add-upgrade "$KJ_STORY_VERSION" "$KJ_TMP_DIR/story" --upgrade-height "$KJ_UPGRADE_HEIGHT" --force
 	fi
 
 	# Download Story execution binary.
@@ -573,7 +572,7 @@ screen_snapshot() {
 	cp "$HOME/.story/story/data/priv_validator_state.json" "$HOME/.story/story/priv_validator_state.json.backup"
 
 	echo -e "\e[1m\e[32mRemoving existing local data...\e[0m" >&2
-	rm -rf "$HOME/.story/story/data" "$HOME/.story/geth/iliad/geth/chaindata"
+	rm -rf "$HOME/.story/story/data" "$HOME/.story/geth/{$KJ_CHAIN_ID}/geth/chaindata"
 
 	echo -e "\e[1m\e[32mDownloading latest available snapshot...\e[0m" >&2
 	curl -L https://snapshots.kjnodes.com/story-testnet/snapshot_latest_geth.tar.lz4 | tar -Ilz4 -xf - -C "$HOME/.story/geth"

@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-KJ_STORY_VERSION='0.12.0' # without the `v` prefix
-KJ_STORY_COMMIT='94ed0fe' # from `story version` on https://github.com/piplabs/story/releases
+KJ_STORY_VERSION='0.12.1' # without the `v` prefix
+KJ_STORY_COMMIT='20fed5e' # from `story version` on https://github.com/piplabs/story/releases
 KJ_GETH_VERSION='0.10.0' # without the `v` prefix
 KJ_GETH_COMMIT='ab8925d' # from `geth --version` on https://github.com/piplabs/story-geth/releases
-KJ_UPGRADE_HEIGHT='0'
+KJ_UPGRADE_HEIGHT='322000'
 KJ_GO_VERSION='1.22.8'
 KJ_COSMOVISOR_VERSION='v1.6.0'
 KJ_CHAIN_ID='odyssey'

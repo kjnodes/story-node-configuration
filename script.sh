@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-KJ_STORY_VERSION='v0.13.0' # without the `v` prefix
+KJ_STORY_VERSION='0.13.0' # without the `v` prefix
 KJ_STORY_COMMIT='daaa395' # from `story version` on https://github.com/piplabs/story/releases
 KJ_GETH_VERSION='0.11.0' # without the `v` prefix
 KJ_GETH_COMMIT='f650370' # from `geth --version` on https://github.com/piplabs/story-geth/releases
